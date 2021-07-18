@@ -1,7 +1,4 @@
-FROM alpine:3.12 as frontend
-
-RUN apk add --no-cache \
-  npm
+FROM node:12-slim as frontend
 
 RUN npm install -g @angular/cli
 
@@ -15,7 +12,7 @@ RUN ng build --prod
 
 #--------------#
 
-FROM alpine:3.12
+FROM node:12-slim
 
 ENV UID=1000 \
   GID=1000 \
@@ -24,15 +21,16 @@ ENV UID=1000 \
 ENV NO_UPDATE_NOTIFIER=true
 ENV FOREVER_ROOT=/app/.forever
 
-RUN addgroup -S $USER -g $GID && adduser -D -S $USER -G $USER -u $UID
+# Skip this since UID/GID 1000 are already in our base image. Names don't match though!
+# RUN addgroup -S $USER -g $GID && adduser -D -S $USER -G $USER -u $UID
 
-RUN apk add --no-cache \
-  ffmpeg \
-  npm \
-  python2 \
-  su-exec \
-  && apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing/ \
-    atomicparsley
+RUN apt-get update \
+  && apt-get install -y \
+    ffmpeg \
+    python \
+    apache2-suexec-custom \
+    atomicparsley \
+  && apt-get clean
 
 WORKDIR /app
 COPY --chown=$UID:$GID [ "backend/package.json", "backend/package-lock.json", "/app/" ]
