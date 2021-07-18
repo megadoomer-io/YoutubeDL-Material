@@ -14,6 +14,10 @@ RUN ng build --prod
 
 FROM node:12-slim
 
+EXPOSE 17442
+ENTRYPOINT [ "/app/entrypoint.sh" ]
+CMD [ "forever", "app.js" ]
+
 ENV UID=1000 \
   GID=1000 \
   USER=youtube
